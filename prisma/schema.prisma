@@ -40,6 +40,18 @@ enum ContentVisibility {
   PRIVATE
 }
 
+enum MediaType {
+  IMAGE
+  VIDEO
+}
+
+enum ReportStatus {
+  OPEN
+  REVIEWED
+  DISMISSED
+  ACTIONED
+}
+
 model User {
   id           String   @id @default(cuid())
   email        String   @unique
@@ -54,6 +66,7 @@ model User {
   followingCreators   CreatorFollow[] @relation("CreatorFollowing")
   auditLogs            AdminAuditLog[] @relation("AdminActor")
   passwordResetTokens  PasswordResetToken[]
+  reports              ContentReport[] @relation("ReportAuthor")
 
   @@index([role])
 }
@@ -120,16 +133,44 @@ model Content {
   title       String
   description String?
   mediaUrl    String?
+  mediaType   MediaType?
+  mimeType    String?
+  sizeBytes   BigInt?
   status      ContentStatus     @default(DRAFT)
   visibility  ContentVisibility @default(PUBLIC)
+  rejectionReason String?
+  reviewedAt  DateTime?
+  reviewedBy  String?
   createdAt   DateTime          @default(now())
   updatedAt   DateTime          @updatedAt
 
   creator CreatorProfile @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  reports ContentReport[]
 
   @@index([creatorId])
   @@index([status])
   @@index([visibility])
+}
+
+model ContentReport {
+  id         String       @id @default(cuid())
+  reporterId String
+  contentId  String
+  reason     String
+  details    String?
+  status     ReportStatus @default(OPEN)
+  reviewedAt DateTime?
+  reviewedBy String?
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+
+  reporter User    @relation("ReportAuthor", fields: [reporterId], references: [id], onDelete: Cascade)
+  content  Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
+
+  @@unique([reporterId, contentId])
+  @@index([contentId])
+  @@index([status])
+  @@index([createdAt])
 }
 
 model PasswordResetToken {

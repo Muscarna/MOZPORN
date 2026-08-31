@@ -6,11 +6,9 @@ const prisma = new PrismaClient();
 async function main() {
   const email = (process.env.ADMIN_EMAIL ?? "admin@mozporn.local").toLowerCase();
   const password = process.env.ADMIN_PASSWORD;
-
   if (!password || password.length < 12) {
     throw new Error("Defina ADMIN_PASSWORD no .env com pelo menos 12 caracteres.");
   }
-
   const passwordHash = await bcrypt.hash(password, 12);
 
   const admin = await prisma.user.upsert({
