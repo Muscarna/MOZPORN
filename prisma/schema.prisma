@@ -1,0 +1,162 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  CREATOR
+  ADMIN
+}
+
+enum CreatorStatus {
+  PENDING
+  APPROVED
+  SUSPENDED
+}
+
+enum VerificationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum ContentStatus {
+  DRAFT
+  PENDING_REVIEW
+  APPROVED
+  REJECTED
+  REMOVED
+}
+
+enum ContentVisibility {
+  PUBLIC
+  FOLLOWERS
+  SUBSCRIBERS
+  PRIVATE
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String?
+  role         Role     @default(USER)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  creatorProfile      CreatorProfile?
+  verificationRequests VerificationRequest[]
+  followingCreators   CreatorFollow[] @relation("CreatorFollowing")
+  auditLogs            AdminAuditLog[] @relation("AdminActor")
+  passwordResetTokens  PasswordResetToken[]
+
+  @@index([role])
+}
+
+model CreatorProfile {
+  id          String        @id @default(cuid())
+  userId      String        @unique
+  username    String        @unique
+  displayName String
+  bio         String?
+  avatarUrl   String?
+  isPublic    Boolean       @default(false)
+  status      CreatorStatus @default(PENDING)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  user        User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  followers   CreatorFollow[]      @relation("CreatorFollowers")
+  contents    Content[]
+  verifications VerificationRequest[]
+
+  @@index([status])
+  @@index([isPublic])
+}
+
+model CreatorFollow {
+  id         String   @id @default(cuid())
+  followerId String
+  creatorId  String
+  createdAt  DateTime @default(now())
+
+  follower User           @relation("CreatorFollowing", fields: [followerId], references: [id], onDelete: Cascade)
+  creator  CreatorProfile @relation("CreatorFollowers", fields: [creatorId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, creatorId])
+  @@index([followerId])
+  @@index([creatorId])
+}
+
+model VerificationRequest {
+  id              String             @id @default(cuid())
+  userId          String
+  creatorProfileId String?
+  status          VerificationStatus @default(PENDING)
+  provider        String?
+  providerRef     String?
+  submittedAt    DateTime           @default(now())
+  reviewedAt      DateTime?
+  reviewedBy      String?
+  rejectionReason String?
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  creatorProfile CreatorProfile? @relation(fields: [creatorProfileId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([status])
+}
+
+model Content {
+  id          String            @id @default(cuid())
+  creatorId   String
+  title       String
+  description String?
+  mediaUrl    String?
+  status      ContentStatus     @default(DRAFT)
+  visibility  ContentVisibility @default(PUBLIC)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  creator CreatorProfile @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+
+  @@index([creatorId])
+  @@index([status])
+  @@index([visibility])
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  userId    String
+  tokenHash String   @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model AdminAuditLog {
+  id         String   @id @default(cuid())
+  adminId    String
+  action     String
+  targetType String?
+  targetId   String?
+  details    String?
+  createdAt  DateTime @default(now())
+
+  admin User @relation("AdminActor", fields: [adminId], references: [id], onDelete: Cascade)
+
+  @@index([adminId])
+  @@index([createdAt])
+}

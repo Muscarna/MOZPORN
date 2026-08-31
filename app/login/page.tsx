@@ -1,0 +1,4 @@
+import Link from "next/link";
+import { loginAction } from "./actions";
+
+export default async function LoginPage({ searchParams }: { searchParams: Promise<{error?:string}> }) { const p=await searchParams; return <main className="center-page"><div className="auth-card"><Link className="logo" href="/">MOZ<span>PORN</span></Link><h1>Bem-vindo</h1><p>Entre para continuar.</p>{p.error ? <div className="error">Email ou palavra-passe inválidos.</div>:null}<form className="form" action={loginAction}><label>Email<input name="email" type="email" required/></label><label>Palavra-passe<input name="password" type="password" required/></label><button className="btn primary full">Entrar</button></form><p className="small"><Link href="/forgot-password">Esqueci a palavra-passe</Link></p><p className="small">Ainda não tem conta? <Link href="/register">Criar conta</Link></p><Link className="back" href="/">← Voltar</Link></div></main>; }

@@ -1,0 +1,5 @@
+import Link from "next/link";
+import Header from "@/components/Header";
+import { requireAdmin } from "@/lib/permissions";
+import { db } from "@/lib/db";
+export default async function AdminPage(){await requireAdmin();const pending=await db.verificationRequest.count({where:{status:"PENDING"}});const creators=await db.creatorProfile.count({where:{status:"APPROVED"}});const users=await db.user.count();return <><Header/><main><section className="page-title"><span className="badge">ADMIN</span><h1>Painel administrativo</h1><p>Gestão e moderação da plataforma.</p></section><div className="stats"><div><strong>{users}</strong><span>Utilizadores</span></div><div><strong>{creators}</strong><span>Criadores aprovados</span></div><div><strong>{pending}</strong><span>Verificações pendentes</span></div><div><strong>18+</strong><span>Regra de acesso</span></div></div><div className="grid"><Link className="card" href="/admin/verifications"><h2>Verificações</h2><p className="muted">Analisar candidaturas de criadores.</p></Link><div className="card"><h2>Moderação</h2><p className="muted">Denúncias e conteúdos serão adicionados na próxima etapa.</p></div></div></main></>}

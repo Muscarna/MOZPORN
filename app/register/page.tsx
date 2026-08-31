@@ -1,0 +1,4 @@
+import Link from "next/link";
+import { registerAction } from "./actions";
+
+export default function RegisterPage() { return <main className="center-page"><div className="auth-card"><Link className="logo" href="/">MOZ<span>PORN</span></Link><h1>Criar conta</h1><p>Crie a sua conta MOZPORN.</p><form className="form" action={registerAction}><label>Nome<input name="name" required minLength={2} maxLength={80}/></label><label>Email<input name="email" type="email" required/></label><label>Palavra-passe<input name="password" type="password" required minLength={8}/></label><label className="checkbox"><input type="checkbox" name="age" required/> Confirmo que tenho 18 anos ou mais.</label><button className="btn primary full">Criar conta</button></form><p className="small">Já tem conta? <Link href="/login">Entrar</Link></p><Link className="back" href="/">← Voltar</Link></div></main>; }
