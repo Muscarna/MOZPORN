@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 
 import { getCurrentUser } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { hasCreatorSubscription, hasPremiumAccess } from "@/lib/billing";
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await getCurrentUser();
@@ -22,6 +23,9 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
       allowed = Boolean(await db.creatorFollow.findUnique({
         where: { followerId_creatorId: { followerId: user.id, creatorId: content.creatorId } },
       }));
+    }
+    if (content.visibility === "SUBSCRIBERS") {
+      allowed = await hasCreatorSubscription(user.id, content.creatorId) || await hasPremiumAccess(user.id);
     }
   }
   if (!allowed) return NextResponse.json({ error: "Acesso negado." }, { status: 403 });
