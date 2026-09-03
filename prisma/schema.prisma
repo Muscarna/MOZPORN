@@ -127,6 +127,8 @@ model User {
   subscriptions        Subscription[] @relation("SubscriberSubscriptions")
   payments             Payment[]
   accessCodeRedemptions AccessCodeRedemption[]
+  favorites            ContentFavorite[]
+  blockedCreators      CreatorBlock[]
 
   @@index([role])
   @@index([status])
@@ -150,6 +152,7 @@ model CreatorProfile {
   verifications VerificationRequest[]
   subscriptions Subscription[]
   earnings      CreatorEarning[]
+  blockedBy     CreatorBlock[]
 
   @@index([status])
   @@index([isPublic])
@@ -166,6 +169,20 @@ model CreatorFollow {
 
   @@unique([followerId, creatorId])
   @@index([followerId])
+  @@index([creatorId])
+}
+
+model CreatorBlock {
+  id        String   @id @default(cuid())
+  userId    String
+  creatorId String
+  createdAt DateTime @default(now())
+
+  user    User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  creator CreatorProfile @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, creatorId])
+  @@index([userId])
   @@index([creatorId])
 }
 
@@ -211,10 +228,25 @@ model Content {
   reports ContentReport[]
   attestation ContentAttestation?
   removalRequests RemovalRequest[]
+  favorites ContentFavorite[]
 
   @@index([creatorId])
   @@index([status])
   @@index([visibility])
+}
+
+model ContentFavorite {
+  id        String   @id @default(cuid())
+  userId    String
+  contentId String
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, contentId])
+  @@index([userId, createdAt])
+  @@index([contentId])
 }
 
 model RemovalRequest {

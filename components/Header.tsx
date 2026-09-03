@@ -12,6 +12,7 @@ export default async function Header() {
         <Link href="/creators">Criadores</Link>
         <Link href="/premium">Premium</Link>
         {user ? <Link href="/feed">Feed</Link> : null}
+        {user ? <Link href="/favorites">Favoritos</Link> : null}
         {user ? <Link href="/dashboard">Painel</Link> : null}
       </nav>
       {user ? <form action={logoutAction}><button className="btn primary" type="submit">Sair</button></form> : <Link className="btn primary" href="/login">Entrar</Link>}
