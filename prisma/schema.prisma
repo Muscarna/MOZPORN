@@ -234,6 +234,7 @@ model Content {
   sizeBytes   BigInt?
   status      ContentStatus     @default(DRAFT)
   visibility  ContentVisibility @default(PUBLIC)
+  tags        String[]          @default([])
   rejectionReason String?
   reviewedAt  DateTime?
   reviewedBy  String?

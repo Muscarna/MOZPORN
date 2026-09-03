@@ -4,6 +4,7 @@ import "./phase2.css";
 import "./phase3.css";
 import "./notifications.css";
 import "./account.css";
+import "./discovery.css";
 
 export const metadata: Metadata = {
   title: "MOZPORN — Plataforma 18+",

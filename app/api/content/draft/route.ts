@@ -23,10 +23,12 @@ export async function POST(request: Request) {
     allParticipantsAdults?: boolean;
     consentObtained?: boolean;
     distributionRights?: boolean;
+    tags?: string;
   };
   const title = body?.title?.trim() ?? "";
   const description = body?.description?.trim() || null;
   const visibility = body?.visibility ?? ContentVisibility.PUBLIC;
+  const tags = [...new Set((body?.tags ?? "").split(",").map((tag) => tag.trim().toLowerCase().replace(/[^a-z0-9áàâãéêíóôõúç_-]/gi, "")).filter(Boolean))].slice(0, 8);
   const declarationsAccepted = body?.uploaderAdult === true && body?.allParticipantsAdults === true && body?.consentObtained === true && body?.distributionRights === true;
 
   if (title.length < 3 || title.length > 100 || (description?.length ?? 0) > 2000 || !allowedVisibility.has(visibility) || !declarationsAccepted) {
@@ -38,6 +40,7 @@ export async function POST(request: Request) {
       title,
       description,
       visibility,
+      tags,
       status: "DRAFT",
       attestation: { create: { creatorId: user.creatorProfile.id, uploaderAdult: true, allParticipantsAdults: true, consentObtained: true, distributionRights: true } },
     },

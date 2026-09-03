@@ -30,6 +30,7 @@ export default function ContentUploadForm() {
           title: form.get("title"),
           description: form.get("description"),
           visibility: form.get("visibility"),
+          tags: form.get("tags"),
           uploaderAdult: form.get("uploaderAdult") === "on",
           allParticipantsAdults: form.get("allParticipantsAdults") === "on",
           consentObtained: form.get("consentObtained") === "on",
@@ -61,6 +62,8 @@ export default function ContentUploadForm() {
       {error ? <div className="error">{error}</div> : null}
       <label>Título<input name="title" minLength={3} maxLength={100} required /></label>
       <label>Descrição<textarea name="description" maxLength={2000} rows={5} /></label>
+      <label>Etiquetas<input name="tags" maxLength={200} placeholder="ex.: novidades, fotografia, vídeo" /></label>
+      <p className="small">Até 8 etiquetas, separadas por vírgulas.</p>
       <label>Visibilidade
         <select name="visibility" defaultValue="PUBLIC">
           <option value="PUBLIC">Público para membros</option>

@@ -14,10 +14,11 @@ export async function updateContentAction(formData: FormData) {
   const title = String(formData.get("title") ?? "").trim();
   const description = String(formData.get("description") ?? "").trim();
   const visibility = String(formData.get("visibility") ?? "");
+  const tags = [...new Set(String(formData.get("tags") ?? "").split(",").map((tag) => tag.trim().toLowerCase().replace(/[^a-z0-9áàâãéêíóôõúç_-]/gi, "")).filter(Boolean))].slice(0, 8);
   if (title.length < 3 || title.length > 100 || description.length > 2000 || !visibilityValues.has(visibility)) redirect(`/creator/content/${contentId}?error=invalid`);
   const content = await db.content.findFirst({ where: { id: contentId, creator: { userId: user.id }, status: { not: "REMOVED" } }, select: { id: true, status: true } });
   if (!content) redirect("/creator");
-  await db.content.update({ where: { id: content.id }, data: { title, description: description || null, visibility: visibility as "PUBLIC" | "FOLLOWERS" | "SUBSCRIBERS" | "PRIVATE", status: content.status === "DRAFT" ? "DRAFT" : "PENDING_REVIEW", rejectionReason: null, reviewedAt: null, reviewedBy: null } });
+  await db.content.update({ where: { id: content.id }, data: { title, description: description || null, tags, visibility: visibility as "PUBLIC" | "FOLLOWERS" | "SUBSCRIBERS" | "PRIVATE", status: content.status === "DRAFT" ? "DRAFT" : "PENDING_REVIEW", rejectionReason: null, reviewedAt: null, reviewedBy: null } });
   revalidatePath("/creator"); revalidatePath("/feed"); revalidatePath("/admin/content");
   redirect(`/creator/content/${content.id}?success=1`);
 }
