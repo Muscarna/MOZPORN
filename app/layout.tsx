@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import "./phase2.css";
 import "./phase3.css";
+import "./notifications.css";
 
 export const metadata: Metadata = {
   title: "MOZPORN — Plataforma 18+",

@@ -23,6 +23,7 @@ export async function grantPremiumAccessAction(formData: FormData) {
     if (current) await tx.subscription.update({ where: { id: current.id }, data: { planId: plan.id, provider: "MANUAL", status: "ACTIVE", currentPeriodStart: current.currentPeriodStart ?? now, currentPeriodEnd: end, canceledAt: null } });
     else await tx.subscription.create({ data: { subscriberId: user.id, planId: plan.id, type: "PLATFORM_PREMIUM", provider: "MANUAL", status: "ACTIVE", currentPeriodStart: now, currentPeriodEnd: end } });
     await tx.adminAuditLog.create({ data: { adminId: admin.id, action: "PREMIUM_GRANTED", targetType: "USER", targetId: user.id, details: `${durationDays} dias` } });
+    await tx.notification.create({ data: { userId: user.id, type: "PREMIUM", title: "Acesso Premium ativado", message: `Recebeu ${durationDays} dias de acesso Premium.`, href: "/premium" } });
   });
   revalidatePath("/admin/billing"); revalidatePath("/dashboard"); redirect("/admin/billing?success=grant");
 }
@@ -63,6 +64,7 @@ export async function revokePremiumAccessAction(formData: FormData) {
   await db.$transaction([
     db.subscription.update({ where: { id: subscription.id }, data: { status: "CANCELED", canceledAt: new Date(), currentPeriodEnd: new Date() } }),
     db.adminAuditLog.create({ data: { adminId: admin.id, action: "PREMIUM_REVOKED", targetType: "USER", targetId: subscription.subscriberId } }),
+    db.notification.create({ data: { userId: subscription.subscriberId, type: "PREMIUM", title: "Acesso Premium terminado", message: "O seu acesso Premium foi desativado.", href: "/premium" } }),
   ]);
   revalidatePath("/admin/billing"); revalidatePath("/dashboard");
 }
