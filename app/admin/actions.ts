@@ -42,10 +42,33 @@ export async function moderateReportAction(formData: FormData) {
   const admin = await requireAdmin();
   const reportId = String(formData.get("reportId") ?? "");
   const decision = String(formData.get("decision") ?? "DISMISSED");
-  if (!["DISMISSED", "ACTIONED"].includes(decision)) return;
-  await db.$transaction([
-    db.contentReport.update({ where: { id: reportId }, data: { status: decision as "DISMISSED" | "ACTIONED", reviewedAt: new Date(), reviewedBy: admin.id } }),
-    db.adminAuditLog.create({ data: { adminId: admin.id, action: `REPORT_${decision}`, targetType: "CONTENT_REPORT", targetId: reportId } }),
-  ]);
+  if (!["DISMISSED", "ACTIONED", "REMOVE_CONTENT"].includes(decision)) return;
+  const report = await db.contentReport.findUnique({ where: { id: reportId }, select: { contentId: true } });
+  if (!report) return;
+  await db.$transaction(async (tx) => {
+    if (decision === "REMOVE_CONTENT") {
+      await tx.content.update({ where: { id: report.contentId }, data: { status: "REMOVED", rejectionReason: "Removido após denúncia.", reviewedAt: new Date(), reviewedBy: admin.id } });
+      await tx.contentReport.updateMany({ where: { contentId: report.contentId, status: "OPEN" }, data: { status: "ACTIONED", reviewedAt: new Date(), reviewedBy: admin.id } });
+    } else {
+      await tx.contentReport.update({ where: { id: reportId }, data: { status: decision as "DISMISSED" | "ACTIONED", reviewedAt: new Date(), reviewedBy: admin.id } });
+    }
+    await tx.adminAuditLog.create({ data: { adminId: admin.id, action: decision === "REMOVE_CONTENT" ? "REPORT_CONTENT_REMOVED" : `REPORT_${decision}`, targetType: "CONTENT_REPORT", targetId: reportId } });
+  });
   revalidatePath("/admin/content");
+  revalidatePath("/feed");
+}
+
+export async function updateAccountStatusAction(formData: FormData) {
+  const admin = await requireAdmin();
+  const userId = String(formData.get("userId") ?? "");
+  const decision = String(formData.get("decision") ?? "");
+  const reason = String(formData.get("reason") ?? "").trim();
+  if (!userId || userId === admin.id || !["SUSPEND", "REACTIVATE"].includes(decision)) return;
+  if (decision === "SUSPEND" && reason.length < 5) redirect("/admin/users?error=reason");
+  await db.$transaction(async (tx) => {
+    await tx.user.update({ where: { id: userId }, data: decision === "SUSPEND" ? { status: "SUSPENDED", suspendedAt: new Date(), suspendedBy: admin.id, suspensionReason: reason } : { status: "ACTIVE", suspendedAt: null, suspendedBy: null, suspensionReason: null } });
+    await tx.creatorProfile.updateMany({ where: { userId }, data: decision === "SUSPEND" ? { status: "SUSPENDED", isPublic: false } : { status: "PENDING", isPublic: false } });
+    await tx.adminAuditLog.create({ data: { adminId: admin.id, action: decision === "SUSPEND" ? "ACCOUNT_SUSPENDED" : "ACCOUNT_REACTIVATED", targetType: "USER", targetId: userId, details: reason || null } });
+  });
+  revalidatePath("/admin/users"); revalidatePath("/creators"); revalidatePath("/feed");
 }

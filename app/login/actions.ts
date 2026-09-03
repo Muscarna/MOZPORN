@@ -12,6 +12,7 @@ export async function loginAction(formData: FormData) {
   if (!attempt.allowed) redirect("/login?error=limited");
   const user = await db.user.findUnique({ where:{email:parsed.data.email.toLowerCase()} });
   if (!user || !(await verifyPassword(parsed.data.password,user.passwordHash))) redirect("/login?error=1");
+  if (user.status === "SUSPENDED") redirect("/login?error=suspended");
   await markSecurityEventSuccess(attempt.eventId);
   await createSession(user.id);
   redirect(user.role === "ADMIN" ? "/admin" : user.role === "CREATOR" ? "/creator" : "/dashboard");

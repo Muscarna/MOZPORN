@@ -14,7 +14,7 @@ export default async function ContentModerationPage({ searchParams }: { searchPa
     }),
     db.contentReport.findMany({
       where: { status: "OPEN" },
-      include: { reporter: { select: { email: true } }, content: { select: { id: true, title: true } } },
+      include: { reporter: { select: { email: true } }, content: { select: { id: true, title: true, status: true } } },
       orderBy: { createdAt: "desc" }, take: 100,
     }),
   ]);
@@ -26,6 +26,6 @@ export default async function ContentModerationPage({ searchParams }: { searchPa
       {content.mediaUrl ? content.mediaType === "VIDEO" ? <video className="moderation-media" src={`/api/media/${content.id}`} controls preload="metadata"/> : <img className="moderation-media" src={`/api/media/${content.id}`} alt={content.title}/> : null}
       <form action={moderateContentAction} className="moderation-actions"><input type="hidden" name="contentId" value={content.id}/><input name="reason" maxLength={500} placeholder="Motivo, se rejeitar ou remover"/><button name="decision" value="APPROVED" className="btn primary">Aprovar</button><button name="decision" value="REJECTED" className="btn secondary">Rejeitar</button><button name="decision" value="REMOVED" className="btn danger">Remover</button></form>
     </article>)}</section>
-    <section className="moderation-list"><h2>Denúncias abertas</h2>{reports.length === 0 ? <p className="muted">Nenhuma denúncia aberta.</p> : reports.map((report) => <article className="moderation-card" key={report.id}><div><h3>{report.content.title}</h3><p>{report.reason}</p><p className="muted">Enviada por {report.reporter.email}</p></div><form action={moderateReportAction} className="moderation-actions"><input type="hidden" name="reportId" value={report.id}/><button name="decision" value="DISMISSED" className="btn secondary">Arquivar</button><button name="decision" value="ACTIONED" className="btn primary">Resolvida</button></form></article>)}</section>
+    <section className="moderation-list"><h2>Denúncias abertas</h2>{reports.length === 0 ? <p className="muted">Nenhuma denúncia aberta.</p> : reports.map((report) => <article className="moderation-card" key={report.id}><div><span className="badge">{report.reason}</span><h3>{report.content.title}</h3>{report.details ? <p>{report.details}</p> : null}<p className="muted">Enviada por {report.reporter.email} · conteúdo {report.content.status}</p></div><form action={moderateReportAction} className="moderation-actions"><input type="hidden" name="reportId" value={report.id}/><button name="decision" value="DISMISSED" className="btn secondary">Arquivar</button><button name="decision" value="ACTIONED" className="btn primary">Resolver sem remover</button><button name="decision" value="REMOVE_CONTENT" className="btn danger">Remover conteúdo</button></form></article>)}</section>
   </main></>;
 }

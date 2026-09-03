@@ -66,8 +66,9 @@ export async function getCurrentUser() {
   const userId = await getSessionUserId();
   if (!userId) return null;
 
-  return db.user.findUnique({
+  const user = await db.user.findUnique({
     where: { id: userId },
     include: { creatorProfile: true },
   });
+  return user?.status === "ACTIVE" ? user : null;
 }
