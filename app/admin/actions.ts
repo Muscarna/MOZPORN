@@ -36,9 +36,9 @@ export async function moderateReportAction(formData: FormData) {
   const reportId = String(formData.get("reportId") ?? "");
   const decision = String(formData.get("decision") ?? "DISMISSED");
   if (!["DISMISSED", "ACTIONED"].includes(decision)) return;
-  await db.contentReport.update({
-    where: { id: reportId },
-    data: { status: decision as "DISMISSED" | "ACTIONED", reviewedAt: new Date(), reviewedBy: admin.id },
-  });
+  await db.$transaction([
+    db.contentReport.update({ where: { id: reportId }, data: { status: decision as "DISMISSED" | "ACTIONED", reviewedAt: new Date(), reviewedBy: admin.id } }),
+    db.adminAuditLog.create({ data: { adminId: admin.id, action: `REPORT_${decision}`, targetType: "CONTENT_REPORT", targetId: reportId } }),
+  ]);
   revalidatePath("/admin/content");
 }

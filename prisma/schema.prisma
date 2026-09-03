@@ -102,6 +102,7 @@ model User {
   reports              ContentReport[] @relation("ReportAuthor")
   subscriptions        Subscription[] @relation("SubscriberSubscriptions")
   payments             Payment[]
+  accessCodeRedemptions AccessCodeRedemption[]
 
   @@index([role])
 }
@@ -249,10 +250,58 @@ model Subscription {
   creator    CreatorProfile? @relation(fields: [creatorId], references: [id], onDelete: Cascade)
   plan       Plan            @relation(fields: [planId], references: [id], onDelete: Restrict)
   payments   Payment[]
+  accessCodeRedemptions AccessCodeRedemption[]
 
   @@index([subscriberId, status])
   @@index([creatorId, status])
   @@index([type, status])
+}
+
+model AccessCode {
+  id              String   @id @default(cuid())
+  codeHash        String   @unique
+  label           String
+  durationDays    Int
+  maxRedemptions  Int      @default(1)
+  redemptionCount Int      @default(0)
+  expiresAt       DateTime?
+  active          Boolean  @default(true)
+  createdBy       String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  redemptions AccessCodeRedemption[]
+
+  @@index([active, expiresAt])
+  @@index([createdAt])
+}
+
+model AccessCodeRedemption {
+  id             String   @id @default(cuid())
+  codeId         String
+  userId         String
+  subscriptionId String
+  redeemedAt     DateTime @default(now())
+
+  code         AccessCode    @relation(fields: [codeId], references: [id], onDelete: Cascade)
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subscription Subscription  @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+
+  @@unique([codeId, userId])
+  @@index([userId])
+  @@index([subscriptionId])
+}
+
+model SecurityEvent {
+  id              String   @id @default(cuid())
+  fingerprintHash String
+  action          String
+  subject         String?
+  success         Boolean  @default(false)
+  createdAt       DateTime @default(now())
+
+  @@index([fingerprintHash, action, createdAt])
+  @@index([createdAt])
 }
 
 model Payment {
