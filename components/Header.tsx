@@ -17,6 +17,7 @@ export default async function Header() {
         {user ? <Link href="/favorites">Favoritos</Link> : null}
         {user ? <Link href="/notifications">Avisos{unread ? ` (${unread > 9 ? "9+" : unread})` : ""}</Link> : null}
         {user ? <Link href="/dashboard">Painel</Link> : null}
+        {user ? <Link href="/account">Conta</Link> : null}
       </nav>
       {user ? <form action={logoutAction}><button className="btn primary" type="submit">Sair</button></form> : <Link className="btn primary" href="/login">Entrar</Link>}
     </header>
