@@ -57,6 +57,21 @@ enum ReportStatus {
   ACTIONED
 }
 
+enum RemovalRequestStatus {
+  OPEN
+  REVIEWING
+  ACTIONED
+  REJECTED
+}
+
+enum RemovalRequestReason {
+  POSSIBLE_MINOR
+  NON_CONSENSUAL
+  RIGHTS_VIOLATION
+  IMPERSONATION
+  OTHER_ILLEGAL
+}
+
 enum SubscriptionType {
   PLATFORM_PREMIUM
   CREATOR
@@ -195,10 +210,36 @@ model Content {
   creator CreatorProfile @relation(fields: [creatorId], references: [id], onDelete: Cascade)
   reports ContentReport[]
   attestation ContentAttestation?
+  removalRequests RemovalRequest[]
 
   @@index([creatorId])
   @@index([status])
   @@index([visibility])
+}
+
+model RemovalRequest {
+  id          String               @id @default(cuid())
+  reference   String               @unique @default(cuid())
+  contentId   String?
+  contentRef  String
+  requesterName String
+  requesterEmail String
+  relationship String
+  reason      RemovalRequestReason
+  details     String
+  goodFaith   Boolean
+  status      RemovalRequestStatus @default(OPEN)
+  adminNotes  String?
+  reviewedAt  DateTime?
+  reviewedBy  String?
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+
+  content Content? @relation(fields: [contentId], references: [id], onDelete: SetNull)
+
+  @@index([status, createdAt])
+  @@index([contentId])
+  @@index([requesterEmail])
 }
 
 model ContentAttestation {

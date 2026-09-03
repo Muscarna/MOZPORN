@@ -23,6 +23,6 @@ export default async function HomePage() {
       <section><div className="section-head"><h2>Criadores em destaque</h2><Link href="/creators">Ver todos →</Link></div><div className="creator-grid">{creators.map(c => <Link className="creator" href={`/creators/${c.username}`} key={c.username}><div className="avatar">{c.avatarUrl ? <img src={c.avatarUrl} alt="" style={{width:"100%",height:"100%",objectFit:"cover"}} /> : "✨"}</div><h3>{c.displayName}</h3><p>@{c.username}</p><div className="meta"><span>🔞 18+</span><span>{c._count.followers} seguidores</span></div></Link>)}</div></section>
       <section className="notice"><h2>Uma plataforma responsável</h2><p>Somente adultos, consentimento, respeito pela privacidade e mecanismos de denúncia. Conteúdo não consensual e material envolvendo menores são proibidos.</p></section>
     </main>
-    <footer>© 2026 MOZPORN • 18+ • <Link href="/terms">Termos</Link> • <Link href="/privacy">Privacidade</Link></footer>
+    <footer>© 2026 MOZPORN • 18+ • <Link href="/terms">Termos</Link> • <Link href="/privacy">Privacidade</Link> • <Link href="/removal-request">Solicitar remoção</Link></footer>
   </>;
 }
