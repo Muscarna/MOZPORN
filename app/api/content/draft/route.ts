@@ -19,22 +19,27 @@ export async function POST(request: Request) {
     title?: string;
     description?: string;
     visibility?: ContentVisibility;
+    uploaderAdult?: boolean;
+    allParticipantsAdults?: boolean;
+    consentObtained?: boolean;
+    distributionRights?: boolean;
   };
   const title = body?.title?.trim() ?? "";
   const description = body?.description?.trim() || null;
   const visibility = body?.visibility ?? ContentVisibility.PUBLIC;
+  const declarationsAccepted = body?.uploaderAdult === true && body?.allParticipantsAdults === true && body?.consentObtained === true && body?.distributionRights === true;
 
-  if (title.length < 3 || title.length > 100 || (description?.length ?? 0) > 2000 || !allowedVisibility.has(visibility)) {
+  if (title.length < 3 || title.length > 100 || (description?.length ?? 0) > 2000 || !allowedVisibility.has(visibility) || !declarationsAccepted) {
     return NextResponse.json({ error: "Dados da publicação inválidos." }, { status: 400 });
   }
 
-  const content = await db.content.create({
-    data: {
+  const content = await db.content.create({ data: {
       creatorId: user.creatorProfile.id,
       title,
       description,
       visibility,
       status: "DRAFT",
+      attestation: { create: { creatorId: user.creatorProfile.id, uploaderAdult: true, allParticipantsAdults: true, consentObtained: true, distributionRights: true } },
     },
     select: { id: true },
   });

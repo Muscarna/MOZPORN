@@ -12,6 +12,13 @@ export async function moderateContentAction(formData: FormData) {
   const reason = String(formData.get("reason") ?? "").trim();
   if (!["APPROVED", "REJECTED", "REMOVED"].includes(decision)) return;
 
+  if (decision === "APPROVED") {
+    const attestation = await db.contentAttestation.findUnique({ where: { contentId } });
+    if (!attestation || !attestation.uploaderAdult || !attestation.allParticipantsAdults || !attestation.consentObtained || !attestation.distributionRights) {
+      redirect("/admin/content?error=attestation");
+    }
+  }
+
   await db.$transaction(async (tx) => {
     await tx.content.update({
       where: { id: contentId },

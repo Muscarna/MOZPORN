@@ -30,6 +30,10 @@ export default function ContentUploadForm() {
           title: form.get("title"),
           description: form.get("description"),
           visibility: form.get("visibility"),
+          uploaderAdult: form.get("uploaderAdult") === "on",
+          allParticipantsAdults: form.get("allParticipantsAdults") === "on",
+          consentObtained: form.get("consentObtained") === "on",
+          distributionRights: form.get("distributionRights") === "on",
         }),
       });
       const draft = await draftResponse.json();
@@ -61,6 +65,7 @@ export default function ContentUploadForm() {
         <select name="visibility" defaultValue="PUBLIC">
           <option value="PUBLIC">Público para membros</option>
           <option value="FOLLOWERS">Seguidores</option>
+          <option value="SUBSCRIBERS">Assinantes e Premium</option>
           <option value="PRIVATE">Privado</option>
         </select>
       </label>
@@ -68,6 +73,7 @@ export default function ContentUploadForm() {
         <input name="file" type="file" accept="image/jpeg,image/png,image/webp,video/mp4,video/webm" required />
       </label>
       <p className="small">Formatos: JPG, PNG, WebP, MP4 ou WebM. Limite: 500 MB.</p>
+      <fieldset className="attestation-box"><legend>Declarações obrigatórias</legend><label className="checkbox"><input type="checkbox" name="uploaderAdult" required/> Confirmo que tenho 18 anos ou mais.</label><label className="checkbox"><input type="checkbox" name="allParticipantsAdults" required/> Todas as pessoas representadas tinham 18 anos ou mais na data da gravação.</label><label className="checkbox"><input type="checkbox" name="consentObtained" required/> Todas as pessoas consentiram na gravação e publicação.</label><label className="checkbox"><input type="checkbox" name="distributionRights" required/> Tenho autorização e direitos para distribuir este conteúdo.</label></fieldset>
       <button className="btn primary full" disabled={busy}>{busy ? `Enviando… ${progress}%` : "Enviar para moderação"}</button>
     </form>
   );

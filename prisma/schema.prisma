@@ -184,10 +184,28 @@ model Content {
 
   creator CreatorProfile @relation(fields: [creatorId], references: [id], onDelete: Cascade)
   reports ContentReport[]
+  attestation ContentAttestation?
 
   @@index([creatorId])
   @@index([status])
   @@index([visibility])
+}
+
+model ContentAttestation {
+  id                    String   @id @default(cuid())
+  contentId             String   @unique
+  creatorId             String
+  uploaderAdult         Boolean
+  allParticipantsAdults Boolean
+  consentObtained       Boolean
+  distributionRights    Boolean
+  declarationVersion    String   @default("2026-09")
+  declaredAt            DateTime @default(now())
+
+  content Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
+
+  @@index([creatorId])
+  @@index([declaredAt])
 }
 
 model ContentReport {
